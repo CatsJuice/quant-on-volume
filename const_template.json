@@ -1,0 +1,16 @@
+{
+    "type": "https | http",
+    "check_url": "测试代理ip的地址",
+    "mysql": {
+        "host": "localhost",
+        "port": 3306,
+        "username": "root",
+        "password": "",
+        "database": "tourist_route"
+    },
+    "libs": [
+        "requests",
+        "BeautifulSoup4",
+        "tqdm"
+    ]
+}
