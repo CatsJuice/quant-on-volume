@@ -13,7 +13,7 @@ import router from './router.js';
 // 导入根组件
 import app from './app.vue';
 
-// import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/public.scss';
 
 const vm = new Vue({
