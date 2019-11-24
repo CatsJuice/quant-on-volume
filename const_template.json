@@ -1,6 +1,11 @@
 {
-    "type": "https | http",
-    "check_url": "测试代理ip的地址",
+    "tushare": {
+        "token": "",
+        "username": ""
+    },
+    "type": "https",
+    "check_url1": "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page=2&num=40&sort=amount&asc=0&node=hs_a&symbol=&_s_r_a=auto",
+    "check_url": "https://www.baidu.com",
     "mysql": {
         "host": "localhost",
         "port": 3306,
@@ -10,7 +15,14 @@
     },
     "libs": [
         "requests",
-        "BeautifulSoup4",
-        "tqdm"
-    ]
+        "BeautifulSoup4"
+    ],
+    "day_line_file_prefix": "E:\\files\\stock\\dayline\\netease\\",
+    "stock_list_file": "E:\\files\\stock\\code_list.csv",
+    "macd_img_path": "E:\\files\\stock\\dayline\\macd_img\\",
+    "path": {
+        "stock_list": { 
+            "sina": "E:\\files\\stock\\stock_list\\sina_list"
+        }
+    }
 }

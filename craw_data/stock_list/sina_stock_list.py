@@ -15,14 +15,15 @@ class SinaStockList(object):
         self.consts = json.loads(f.read())
         
         self.downloader = download.Downloader()
-        self.downloader.init_zhilian_ip()
-        # self.downloader.init_ip_pool()
+        # self.downloader.init_zhilian_ip()     # 使用代理 ip (付费)
+        # self.downloader.init_ip_pool()        # 使用代理 ip (免费)
 
         self.arr = []
 
     def get_stock_list(self, max_page=100):
         for i in tqdm(range(max_page)):
-            res = self.downloader.zhilian_ip_proxy_get(uri % i).decode("gbk","ignore")
+            res = self.downloader.requests_get(uri % i).decode("gbk","ignore")
+            # res = self.downloader.zhilian_ip_proxy_get(uri % i).decode("gbk","ignore")
             if res == "null":
                 continue
             res = json.loads(self.json_format(res))

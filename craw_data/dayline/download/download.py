@@ -4,7 +4,7 @@ import time
 import json
 import requests
 import random
-
+import urllib
 import http.client
 import csv
 from bs4 import BeautifulSoup
@@ -74,6 +74,15 @@ class Downloader(object):
                 return response.text
         else:
             print("Request Falied For Code: %s" % response.status_code)
+
+    def download_netease_csv(self, url, filepath):
+        # response = requests.get(url=url)
+        # with open(filepath, "wb", encoding="gbk") as f:
+        #     f.write(response.content)
+        http.client.HTTPConnection._http_vsn = 10
+        http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+        urllib.request.urlretrieve(url, filepath)
+
 
     # 通过代理发起 get 请求
     def proxy_get(self, url, type, data=None):

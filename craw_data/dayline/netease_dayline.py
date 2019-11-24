@@ -1,7 +1,14 @@
 import sys
 import json
 
+import pandas as pd
 from download import download
+import math
+import threading
+import os
+import random
+import time 
+from tqdm import tqdm
 
 class NeteaseDayline(object):
 
@@ -12,14 +19,14 @@ class NeteaseDayline(object):
         f = open(const_path + "\\const.json", "r", encoding='utf8')
         consts = json.loads(f.read())
 
-        self.stock_list_file = consts['stock_list_file']          # 全部股票信息的csv文件
-        self.save_path_prefix = consts['day_line_file_prefix']    # 日线存储文件夹目录
+        self.stock_list_file = consts['stock_list_file']         # 全部股票信息的csv文件
+        self.save_path_prefix = consts['day_line_file_prefix']['netease']     # 日线存储文件夹目录
         self.end_date = end_date                                  # 截止日期
         self.thread_num = thread_num                              # 线程数
         self.timeout = timeout                                    # 线程超时
 
         self.downloader = download.Downloader()                   # 下载器
-        self.downloader.init_ip_pool()                            # 初始化 ip 池
+        # self.downloader.init_ip_pool()                            # 初始化 ip 池
     
     # 控制器入口
     def entrance(self):
@@ -76,6 +83,7 @@ class NeteaseDayline(object):
                 error = "线程 %s 下载 %s 时出现错误" % (thread_id, code)
                 f.write(error + "\n")
                 continue
+            time.sleep(random.random()*2)
 
     # 处理网易财经日线 下载的 url
     def handle_netease_url(self, code):
@@ -108,11 +116,11 @@ class NeteaseDayline(object):
 if __name__ == "__main__":
     
     # end_date = "20190616"                                          # 截至日期
-    thread_num = 16                                                  # 线程数
+    thread_num = 4                                                  # 线程数
     timeout = 10                                                     # 线程超时
 
     netease_dayline = NeteaseDayline(
         thread_num=thread_num, 
         timeout=timeout
     )
-    # netease_dayline.entrance()
+    netease_dayline.entrance()
