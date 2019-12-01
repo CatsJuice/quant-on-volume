@@ -20,10 +20,16 @@ export default {
   },
   data() {
     return {
+      ww: 800,
+      hh: 600,
+      x: 100,
+      y: 100,
       moveable: true,
       opt: {},
+      resOpt: {},
       loading: false,
-      storedData: undefined
+      storedData: undefined,
+      currentActive: "echarts"
     };
   },
   computed: {
@@ -33,21 +39,51 @@ export default {
       this.processByCode(code);
       return code;
     },
+    ma() {
+      return this.$store.getters["hly/ma"];
+    },
     daySum() {
       return this.$store.getters["hly/daySum"];
+    },
+    currentResType() {
+      return this.$store.getters["hly/currentResType"];
+    },
+    showCount() {
+      let show = this.$store.getters["hly/showCount"];
+      if (show) this.processResOpt();
+      return show;
     }
   },
   mounted() {},
   watch: {
     daySum(val) {
       this.processByCode(this.code);
+    },
+    ma(val) {
+      this.processByCode(this.code);
+    },
+    currentResType(val) {
+      this.processResOpt();
     }
   },
   methods: {
-    handleResize: debounce((e, vm) => {
-      vm.$refs.echarts.resize();
+    handleResize: debounce((e, vm, target) => {
+      vm.$refs[target].resize();
+      vm.currentActive = target;
     }, 10),
-
+    processResOpt() {
+      const promisedOptProcesser = () => import("@/assets/chartOpt/c0002.js");
+      promisedOptProcesser().then(res => {
+        const optProcessor = res.default;
+        const newOpt = optProcessor({
+          dataPlus: require("@/data/hly_count_res_plus.json"),
+          dataReduce: require("@/data/hly_count_res_reduce.json"),
+          currentResType: this.currentResType
+        });
+        this.resOpt = cloneDeep(newOpt);
+        console.log(newOpt)
+      });
+    },
     async processByCode(code) {
       this.loading = true;
       let data = [];
@@ -72,7 +108,8 @@ export default {
         const optProcessor = res.default;
         const newOpt = optProcessor({
           data,
-          daySum: this.daySum
+          daySum: this.daySum,
+          ma: this.ma
         });
 
         this.opt = cloneDeep(newOpt);
@@ -82,28 +119,94 @@ export default {
         });
       });
       this.loading = false;
+    },
+
+    smallest() {
+      this.ww = 50;
+      this.hh = 50;
+      this.x = 0;
+      this.y = 0;
+    },
+
+    switchCurrentActive(tar) {
+      this.currentActive = tar;
     }
   },
   render() {
-    const { moveable, handleResize, code } = this;
+    const { moveable, handleResize, code, ww, hh, x, y } = this;
     const initOptions = {
       render: "canvas"
     };
     if (codeList.filter(e => e === code).length == 0) return <empty-page />;
+
+    let countResult = (
+      <transition
+        enter-active-class="animated fadeIn"
+        leave-active-class="animated fadeOutWithouDelay"
+      >
+        <drag-resize
+          style={this.currentActive == "echarts2" ? "z-index:9999;" : ""}
+          ww={800}
+          hh={800}
+          x={50}
+          y={50}
+          resizable={true}
+          initOptions={initOptions}
+          vOn:resizemove={e => handleResize(e, this, "echarts2")}
+        >
+          <div
+            id="print-panel"
+            onMousedown={e => this.switchCurrentActive("echarts2")}
+          >
+            <div class="drag">
+              <span class="chart-output-content">
+                <span></span>
+                <span></span>
+              </span>
+              <span class="chart-output-content"></span>
+              <span class="chart-output-content">
+                <span></span>
+              </span>
+            </div>
+            <echarts
+              id="echats"
+              class="chart-output-content"
+              initOptions={initOptions}
+              options={this.resOpt}
+              autoresize
+              ref="echarts2"
+            />
+          </div>
+        </drag-resize>
+      </transition>
+    );
     return (
       <div class="row">
         <drag-resize
-          ww={800}
-          hh={600}
-          x={100}
-          y={100}
+          ww={ww}
+          hh={hh}
+          x={x}
+          y={y}
           resizable={true}
           initOptions={initOptions}
           moveable={moveable}
-          vOn:resizemove={e => handleResize(e, this)}
+          style={this.currentActive == "echarts" ? "z-index:9999;" : ""}
+          vOn:resizemove={e => handleResize(e, this, "echarts")}
         >
-          <div id="print-panel">
-            <div class="drag"></div>
+          <div
+            id="print-panel"
+            onMousedown={e => this.switchCurrentActive("echarts")}
+          >
+            <div class="drag">
+              <span class="chart-output-content">
+                <span></span>
+                <span></span>
+              </span>
+              <span class="chart-output-content"></span>
+              <span class="chart-output-content" vOn:click={this.smallest}>
+                <span></span>
+              </span>
+            </div>
             <echarts
               id="echats"
               class="chart-output-content"
@@ -113,6 +216,9 @@ export default {
             />
           </div>
         </drag-resize>
+
+        {this.showCount ? countResult : ""}
+
         <setting-panel />
         <transition
           enter-active-class="animated slideInDown"
@@ -159,6 +265,80 @@ export default {
     background-color: #d3d6e0;
     height: @drag-height;
     // box-shadow: 0px 10px 10px rgba(0,0,0,.1) inset;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    padding-left: 10px;
+    overflow: hidden;
+    span {
+      display: block;
+      width: 16px;
+      height: 16px;
+      margin: 0 2px;
+      border-radius: 50%;
+      background-color: aqua;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      position: relative;
+
+      &:hover {
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      &:nth-child(1) {
+        background-color: #cd6155;
+
+        & > span {
+          position: absolute;
+          width: 60%;
+          height: 1px;
+          background-color: #fff;
+          transform-origin: center;
+          margin-top: 50%;
+          margin-left: 20%;
+          opacity: 0;
+          top: -1px;
+          &:nth-child(1) {
+            transform: rotate(45deg);
+          }
+          &:nth-child(2) {
+            transform: rotate(-45deg);
+          }
+        }
+        &:hover {
+          background-color: #832f26;
+          & > span {
+            opacity: 1;
+          }
+        }
+      }
+      &:nth-child(2) {
+        background-color: #f5b041;
+        &:hover {
+          background-color: #d39430;
+        }
+      }
+      &:nth-child(3) {
+        background-color: #45b39d;
+
+        span {
+          width: 66%;
+          height: 2px;
+          background-color: #fff;
+          position: absolute;
+          top: 50%;
+          left: 17%;
+          margin: 0;
+          margin-top: -1px;
+          opacity: 0;
+        }
+        &:hover {
+          background-color: #349e89;
+          & > span {
+            opacity: 1;
+          }
+        }
+      }
+    }
   }
 
   .loading {
@@ -217,6 +397,9 @@ export default {
 .fadeOut {
   animation: fadeOut 0.5s ease 0.2s 1 forwards;
 }
+.fadeOutWithouDelay {
+  animation: fadeOut 0.5s ease 0s 1 forwards;
+}
 @keyframes fadeOut {
   0% {
     opacity: 1;
@@ -225,6 +408,19 @@ export default {
   100% {
     transform: translateY(-10px) scale(0.9);
     opacity: 0;
+  }
+}
+.fadeIn {
+  animation: fadeIn 0.5s ease 0s 1 forwards;
+}
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.9);
+  }
+  100% {
+    transform: translateY(0px);
+    opacity: 1;
   }
 }
 </style>

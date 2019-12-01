@@ -1,6 +1,9 @@
 const state = {
     daySum: 7,
-    selectedData: []
+    selectedData: [],
+    ma: [],
+    showCount: false,
+    currentResType: 0
 }
 
 const getters = {}

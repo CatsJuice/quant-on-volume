@@ -10,19 +10,19 @@ import {
   Button, 
   Select, 
   Tooltip,
-  Option
+  Option,
+  Switch
 } from 'element-ui';
 Vue.use(Button)
 Vue.use(Select)
 Vue.use(Tooltip)
 Vue.use(Option)
+Vue.use(Switch)
 
 // ant-design
 import { message } from 'ant-design-vue';
-// Vue.prototype.$message = message;
+Vue.prototype.$message = message;
 
-import msg from "./common/Loading/main.js"
-Vue.prototype.$message = msg
 
 Vue.config.productionTip = false
 

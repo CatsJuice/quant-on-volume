@@ -131,7 +131,8 @@ const opt = {
 
 export default function ({
     data,
-    daySum
+    daySum,
+    ma,
 }) {
     const sortedData = cloneDeep(data)
     sortedData.sort(compareDate)
@@ -214,6 +215,19 @@ export default function ({
     let delta_abs_max = Math.max(Math.abs(delta_max), Math.abs(delta_min))
     opt.yAxis[2].max = Math.abs(delta_abs_max)
     opt.yAxis[2].min = -1 * Math.abs(delta_abs_max)
+
+    opt.series = opt.series.concat(ma.map(val => {
+        return {
+            name: `MA${val}`,
+            type: 'line',
+            data: calculateMA(val, sortedData),
+            smooth: true,
+            lineStyle: {
+                normal: {opacity: 0.5}
+            }
+        }
+    }))
+
     return opt
 }
 
@@ -222,4 +236,20 @@ function compareDate(d1, d2) {
     // let d2 = new Date(b['日期']);
     // return d1.getTime() < d2.getTime();
     return parseInt(d1['日期'].split("-").join("")) - parseInt(d2['日期'].split("-").join(""))
+}
+
+function calculateMA(dayCount, data) {
+    var result = [];
+    for (var i = 0, len = data.length; i < len; i++) {
+        if (i < dayCount) {
+            result.push('-');
+            continue;
+        }
+        var sum = 0;
+        for (var j = 0; j < dayCount; j++) {
+            sum += data[i - j]['收盘价'];
+        }
+        result.push(+(sum / dayCount).toFixed(3));
+    }
+    return result;
 }

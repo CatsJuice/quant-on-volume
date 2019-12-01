@@ -48,12 +48,12 @@ export default {
       const self = this;
       interact(this.$el)
         .resizable({
-          inertia: true,
+          inertia: false,
           edges: {
             top: false,
             left: false,
-            bottom: ".cdr-handle-br",
-            right: ".cdr-handle-br"
+            bottom: true,
+            right: true
           }
         })
         .on(
@@ -160,6 +160,7 @@ export default {
   position: relative;
   user-select: none;
   touch-action: none;
+  padding:3px;
 
   &:hover {
     cursor: move;
@@ -170,7 +171,7 @@ export default {
 
   .cdr-handle {
     position: absolute;
-    border: 1px solid #000;
+    border: 1px solid rgba(0,0,0,.4);
     border-radius: 50%;
     height: 20px;
     width: 20px;
@@ -179,23 +180,23 @@ export default {
       transform: scale(1.4);
     }
     &.cdr-handle-tl {
-      top: -10px;
-      left: -10px;
+      top: -5px;
+      left: -5px;
       cursor: nw-resize;
     }
     &.cdr-handle-tr {
-      top: -10px;
-      right: -10px;
+      top: -5px;
+      right: -5px;
       cursor: ne-resize;
     }
     &.cdr-handle-bl {
-      bottom: -10px;
-      left: -10px;
+      bottom: -5px;
+      left: -5px;
       cursor: sw-resize;
     }
     &.cdr-handle-br {
-      bottom: -10px;
-      right: -10px;
+      bottom: -5px;
+      right: -5px;
       cursor: se-resize;
     }
   }
