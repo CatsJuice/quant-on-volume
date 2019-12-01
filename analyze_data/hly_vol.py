@@ -188,19 +188,25 @@ class HlyScore(object):
                         self.res_reduce_reduce(daysum, ma)
 
     # 统一处理累加
-    def res_plus_plus(self, sum_key, ma_key):
+    def res_plus_plus(self, sum_key, ma_key, score_key):
+        score_key = "_%s" % score_key
         if not sum_key in self.res_matrix.keys():
             self.res_matrix[sum_key] = {}
         if not ma_key in self.res_matrix[sum_key].keys():
-            self.res_matrix[sum_key][ma_key] = 0
-        self.res_matrix[sum_key][ma_key] += 1
+            self.res_matrix[sum_key][ma_key] = {}
+        if not score_key in self.res_matrix[sum_key][ma_key]:
+            self.res_matrix[sum_key][ma_key][score_key] = 0
+        self.res_matrix[sum_key][ma_key][score_key] += 1
 
-    def res_reduce_reduce(self, sum_key, ma_key):
+    def res_reduce_reduce(self, sum_key, ma_key, score_key):
+        score_key = "_%s" % score_key
         if not sum_key in self.res_matrix_reduce.keys():
             self.res_matrix_reduce[sum_key] = {}
         if not ma_key in self.res_matrix_reduce[sum_key].keys():
-            self.res_matrix_reduce[sum_key][ma_key] = 0
-        self.res_matrix_reduce[sum_key][ma_key] += 1
+            self.res_matrix_reduce[sum_key][ma_key] = {}
+        if not score_key in self.res_matrix_reduce[sum_key][ma_key]:
+            self.res_matrix_reduce[sum_key][ma_key][score_key] = 0
+        self.res_matrix_reduce[sum_key][ma_key][score_key] += 1
 
     def count(self):
         time_start = time.time() 
@@ -284,7 +290,9 @@ class HlyScore(object):
         ma_arr = []
         for col in df.columns:
             if col[0:3] == "sum": sum_arr.append(col)
-            elif col[0:2] == "MA": ma_arr.append(col)
+            elif col[0:2] == "ma": ma_arr.append(col)
+        # print(sum_arr)
+        # print(ma_arr)
         for index, row in df.iterrows():
             for daysum in sum_arr:
                 for ma in ma_arr:
@@ -293,11 +301,13 @@ class HlyScore(object):
                     if (index-int(ma[3:])) < 0:
                         continue
                     if df.loc[index-int(ma[3:]), ma] > row[ma]:
-                        self.res_plus_plus(daysum, ma)
+                        self.res_plus_plus(daysum, ma, row['hly_score'])
                     else:
-                        self.res_reduce_reduce(daysum, ma)
+                        self.res_reduce_reduce(daysum, ma, row['hly_score'])
         
         # 5. 全部处理完毕，保存
+        # print(self.res_matrix)
+        # print(self.res_matrix_reduce)
         df[::-1].to_csv("%s%s.csv"%(self.with_my_result, code),encoding="gbk",index=None)
 
     def yes_run_me(self):
@@ -323,8 +333,8 @@ class HlyScore(object):
 
 
 if __name__ == "__main__":
-    serial_day_arr = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
-    expectation = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+    serial_day_arr = [5,6,7,8,9,10]
+    expectation = [5,10,15,20,30]
     # expectation = [6,7,8,9,10]
     # serial_day_arr = [5,10,15,20,30]
     hly = HlyScore(serial_day_arr=serial_day_arr,expectation=expectation)
