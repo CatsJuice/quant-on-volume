@@ -3,7 +3,10 @@ const state = {
     selectedData: [],
     ma: [],
     showCount: false,
-    currentResType: 0
+    currentDataType: 0,
+    currentResType: 0,
+    resMA: undefined,
+    resDay: undefined,
 }
 
 const getters = {}

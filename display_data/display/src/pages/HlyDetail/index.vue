@@ -5,6 +5,8 @@ import DragResize from "@/components/DragResize";
 import EmptyPage from "../EmptyPage";
 
 import "echarts/";
+require("echarts-gl");
+
 import { debounce, cloneDeep } from "lodash";
 import { Loading } from "element-ui";
 
@@ -29,7 +31,7 @@ export default {
       resOpt: {},
       loading: false,
       storedData: undefined,
-      currentActive: "echarts"
+      currentActive: "echarts2"
     };
   },
   computed: {
@@ -45,6 +47,9 @@ export default {
     daySum() {
       return this.$store.getters["hly/daySum"];
     },
+    currentDataType() {
+      return this.$store.getters["hly/currentDataType"];
+    },
     currentResType() {
       return this.$store.getters["hly/currentResType"];
     },
@@ -52,6 +57,12 @@ export default {
       let show = this.$store.getters["hly/showCount"];
       if (show) this.processResOpt();
       return show;
+    },
+    resMA() {
+      return this.$store.getters["hly/resMA"];
+    },
+    resDay() {
+      return this.$store.getters["hly/resDay"];
     }
   },
   mounted() {},
@@ -62,9 +73,18 @@ export default {
     ma(val) {
       this.processByCode(this.code);
     },
+    currentDataType(val) {
+      this.processResOpt();
+    },
     currentResType(val) {
       this.processResOpt();
-    }
+    },
+    resMA() {
+      this.processResOpt();
+    },
+    resDay() {
+      this.processResOpt();
+    },
   },
   methods: {
     handleResize: debounce((e, vm, target) => {
@@ -78,10 +98,13 @@ export default {
         const newOpt = optProcessor({
           dataPlus: require("@/data/hly_count_res_plus.json"),
           dataReduce: require("@/data/hly_count_res_reduce.json"),
-          currentResType: this.currentResType
+          currentDataType: this.currentDataType,
+          currentResType: this.currentResType,
+          resDay: this.resDay,
+          resMA: this.resMA,
+
         });
         this.resOpt = cloneDeep(newOpt);
-        console.log(newOpt)
       });
     },
     async processByCode(code) {
@@ -145,7 +168,7 @@ export default {
         leave-active-class="animated fadeOutWithouDelay"
       >
         <drag-resize
-          style={this.currentActive == "echarts2" ? "z-index:9999;" : ""}
+          style={this.currentActive == "echarts2" ? "z-index:999;" : ""}
           ww={800}
           hh={800}
           x={50}
@@ -156,6 +179,7 @@ export default {
         >
           <div
             id="print-panel"
+            style="background-color:rgb(33,32,45);"
             onMousedown={e => this.switchCurrentActive("echarts2")}
           >
             <div class="drag">
@@ -190,7 +214,7 @@ export default {
           resizable={true}
           initOptions={initOptions}
           moveable={moveable}
-          style={this.currentActive == "echarts" ? "z-index:9999;" : ""}
+          style={this.currentActive == "echarts" ? "z-index:999;" : ""}
           vOn:resizemove={e => handleResize(e, this, "echarts")}
         >
           <div

@@ -61,8 +61,25 @@
 
       <div class="setting-item" v-if="showResult">
         <div class="label">
-          <span>选择结果类别</span>
+          <span>选择结果数据</span>
           <el-tooltip class="item" effect="dark" content="查看上升趋势或下降趋势的统计" placement="top">
+            <img src="@/assets/images/icon/wh.svg" />
+          </el-tooltip>
+        </div>
+        <el-select @change="handledataTypeChange" v-model="selectedDataType" placeholder="请选择类别 ">
+          <el-option
+            v-for="dataType in dataTypeOption"
+            :key="dataType.value"
+            :label="dataType.label"
+            :value="dataType.value"
+          ></el-option>
+        </el-select>
+      </div>
+
+      <div class="setting-item" v-if="showResult">
+        <div class="label">
+          <span>选择结果图表类型</span>
+          <el-tooltip class="item" effect="dark" content="切换展示的图表" placement="top">
             <img src="@/assets/images/icon/wh.svg" />
           </el-tooltip>
         </div>
@@ -75,6 +92,42 @@
           ></el-option>
         </el-select>
       </div>
+
+      <!-- MA 天数 -->
+      <div class="setting-item" v-if="showResult && selectedResType == 1">
+        <div class="label">
+          <span>选择热力图 MA</span>
+          <el-tooltip class="item" effect="dark" content="选择热力图 MA" placement="top">
+            <img src="@/assets/images/icon/wh.svg" />
+          </el-tooltip>
+        </div>
+        <el-select @change="handleHMMA" v-model="selectedHMMA" placeholder="请选择MA ">
+          <el-option
+            v-for="hmma in hmmaOption"
+            :key="hmma.value"
+            :label="hmma.label"
+            :value="hmma.value"
+          ></el-option>
+        </el-select>
+      </div>
+
+      <!-- 加分天数
+      <div class="setting-item" v-if="showResult && selectedResType == 1">
+        <div class="label">
+          <span>选择加分的天数</span>
+          <el-tooltip class="item" effect="dark" content="选择加分的天数" placement="top">
+            <img src="@/assets/images/icon/wh.svg" />
+          </el-tooltip>
+        </div>
+        <el-select @change="handleHMday" v-model="selectedHMday" placeholder="请选择加分天数 ">
+          <el-option
+            v-for="hmday in hmdayOption"
+            :key="hmday.value"
+            :label="hmday.label"
+            :value="hmday.value"
+          ></el-option>
+        </el-select>
+      </div> -->
     </div>
   </div>
 </template>
@@ -94,12 +147,22 @@ export default {
       ],
       showResult: false,
 
-      selectedResType: 0,
-      resTypeOption: [
+      selectedDataType: 0,
+      dataTypeOption: [
         { label: "上升趋势", value: 0 },
         { label: "下降趋势", value: 1 },
-        { label: "上升百分比", value: 2 }
-      ]
+        { label: "上升百分比", value: 2 },
+        { label: "下降百分比", value: 3 }
+      ],
+
+      selectedResType: 0,
+      resTypeOption: [
+        { label: "3D 散点图", value: 0 },
+        { label: "2D 热力图", value: 1 }
+      ],
+
+      selectedHMMA: undefined,
+      selectedHMday: undefined
       // daySumOption: [{ label: "", value: "" }]
     };
   },
@@ -114,6 +177,37 @@ export default {
           if (key.substr(0, 3) === "sum") return { label: key, value: key };
         })
         .filter(item => item != undefined);
+    },
+    resData() {
+      if (this.selectedData == 0 || this.selectedData == 2) {
+        return require("@/data/hly_count_res_plus.json");
+      } else {
+        return require("@/data/hly_count_res_reduce.json");
+      }
+    },
+    hmmaOption() {
+      let opt = Object.keys(this.resData[Object.keys(this.resData)[0]]).map(e => {
+        return {
+          label: e,
+          value: e,
+        }
+      })
+      this.selectedHMMA = opt[0].value
+      this.$store.commit("hly/UPDATE", {
+        constant: "resMA",
+        value: opt[0].value
+      });
+      return opt
+    },
+    hmdayOption() {
+      let opt = Object.keys(this.resData).map(e => {
+        return {
+          label: e,
+          value: e
+        };
+      });
+      this.selectedHMday = opt[0].value
+      return opt
     }
   },
   watch: {
@@ -165,9 +259,28 @@ export default {
         value: val
       });
     },
+    handledataTypeChange(value) {
+      this.$store.commit("hly/UPDATE", {
+        constant: "currentDataType",
+        value
+      });
+    },
     handleResTypeChange(value) {
       this.$store.commit("hly/UPDATE", {
         constant: "currentResType",
+        value
+      });
+    },
+
+    handleHMMA(value) {
+      this.$store.commit("hly/UPDATE", {
+        constant: "resMA",
+        value
+      });
+    },
+    handleHMday(value) {
+      this.$store.commit("hly/UPDATE", {
+        constant: "resDay",
         value
       });
     }

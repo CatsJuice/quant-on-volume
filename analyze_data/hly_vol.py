@@ -301,11 +301,14 @@ class HlyScore(object):
                     if (index-int(ma[3:])) < 0:
                         continue
                     if df.loc[index-int(ma[3:]), ma] > row[ma]:
-                        self.res_plus_plus(daysum, ma, row['hly_score'])
+                        self.res_plus_plus(daysum, ma, row[daysum])
                     else:
-                        self.res_reduce_reduce(daysum, ma, row['hly_score'])
+                        self.res_reduce_reduce(daysum, ma, row[daysum])
         
         # 5. 全部处理完毕，保存
+        # f = open("%s\\tmp\\%s.json" % (sys.path[0],code), "w", encoding="utf-8")
+        # f.write(json.dumps(self.res_matrix, ensure_ascii=False))
+        # f.close()
         # print(self.res_matrix)
         # print(self.res_matrix_reduce)
         df[::-1].to_csv("%s%s.csv"%(self.with_my_result, code),encoding="gbk",index=None)
@@ -331,12 +334,48 @@ class HlyScore(object):
         f.write(json.dumps(self.res_matrix_reduce, ensure_ascii=False))
         f.close()
 
+    def run_by_thread(self, thread_num):
+        time_start = time.time() 
+        file_list = os.listdir(self.dayline_file_prefix)
+        file_count = len(file_list)
+        offset = file_count / thread_num
+        offset = math.ceil(offset)
+        threads = []
+        for i in range(thread_num):
+            start = i * offset
+            end = (i+1) * offset if (i+1) * offset < file_count else -1
+            thread = threading.Thread(target=self.do_block, args=(start, end))
+            threads.append(thread)
+        for t in threads:
+            t.setDaemon(True)
+            t.start()
+        t.join()
+        time_end = time.time()
+        time_c= time_end - time_start
+        print('time cost: %s Seconds' % time_c)
+        print(self.res_matrix)
+        print(self.res_matrix_reduce)
+        f = open("%s\\hly_count_res_plus.json" % sys.path[0], "w", encoding="utf-8")
+        f.write(json.dumps(self.res_matrix, ensure_ascii=False))
+        f.close()
+
+        f = open("%s\\hly_count_res_reduce.json" % sys.path[0], "w", encoding="utf-8")
+        f.write(json.dumps(self.res_matrix_reduce, ensure_ascii=False))
+        f.close()
+
+    def do_block(self, start, end):
+        file_list = os.listdir(self.dayline_file_prefix)
+        file_list = file_list[start:end]
+        for index in tqdm(range(len(file_list))):
+            code = file_list[index]
+            code = code[0:6]
+            self.do_all_job_one(code)
 
 if __name__ == "__main__":
-    serial_day_arr = [5,6,7,8,9,10]
+    # serial_day_arr = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    # expectation = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
     expectation = [5,10,15,20,30]
-    # expectation = [6,7,8,9,10]
-    # serial_day_arr = [5,10,15,20,30]
+    serial_day_arr = [6,7,8,9,10]
     hly = HlyScore(serial_day_arr=serial_day_arr,expectation=expectation)
     # hly.calculate_score_all()
     # # hly.calculate_sum_one('000002')
@@ -345,3 +384,4 @@ if __name__ == "__main__":
     # hly.transform_js()
     # hly.count()
     hly.yes_run_me()
+    # hly.run_by_thread(8)
