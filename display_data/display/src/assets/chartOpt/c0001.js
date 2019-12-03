@@ -110,6 +110,9 @@ const opt = {
         }
     }, {
         type: 'inside'
+    },
+    {
+        type: 'inside'
     }],
     animation: false,
     series: [

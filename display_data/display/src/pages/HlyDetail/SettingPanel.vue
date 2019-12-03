@@ -298,6 +298,7 @@ export default {
   width: 280px;
   height: 100%;
   background-color: #fff;
+  z-index: 2000;
   box-shadow: -3px 0px 10px rgba(0, 0, 0, 0.1);
 
   .setting-items {

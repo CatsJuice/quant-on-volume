@@ -19,10 +19,11 @@ export default {
 html {
   width: 100%;
   height: 100%;
+  background-color: #f6f6f6;
   body {
     width: 100%;
     height: 100%;
-    // background-color: #f6f6f6;
+    background-color: #f6f6f6;
 
     #app {
       width: 100%;

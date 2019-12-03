@@ -65,7 +65,9 @@ export default {
       return this.$store.getters["hly/resDay"];
     }
   },
-  mounted() {},
+  mounted() {
+    this.resetRes();
+  },
   watch: {
     daySum(val) {
       this.processByCode(this.code);
@@ -79,12 +81,16 @@ export default {
     currentResType(val) {
       this.processResOpt();
     },
+    showCount(val) {
+      if (val) this.processResOpt();
+      this.loading = true;
+    },
     resMA() {
       this.processResOpt();
     },
     resDay() {
       this.processResOpt();
-    },
+    }
   },
   methods: {
     handleResize: debounce((e, vm, target) => {
@@ -92,6 +98,7 @@ export default {
       vm.currentActive = target;
     }, 10),
     processResOpt() {
+      this.loading = true;
       const promisedOptProcesser = () => import("@/assets/chartOpt/c0002.js");
       promisedOptProcesser().then(res => {
         const optProcessor = res.default;
@@ -101,10 +108,10 @@ export default {
           currentDataType: this.currentDataType,
           currentResType: this.currentResType,
           resDay: this.resDay,
-          resMA: this.resMA,
-
+          resMA: this.resMA
         });
         this.resOpt = cloneDeep(newOpt);
+        this.loading = false;
       });
     },
     async processByCode(code) {
@@ -153,6 +160,89 @@ export default {
 
     switchCurrentActive(tar) {
       this.currentActive = tar;
+    },
+
+    resetRes() {
+      this.$store.commit("hly/RESET_RES");
+    },
+
+    maxOrExtendResWindow() {
+      this.$store.commit("hly/UPDATE", {
+        constant: "forceResPos",
+        value: {
+          max: !this.$store.getters["hly/forceResPos"].max,
+          min: false
+        }
+      });
+    },
+    maxOrExtendWindow() {
+      this.$store.commit("hly/UPDATE", {
+        constant: "forcePos",
+        value: {
+          max: !this.$store.getters["hly/forcePos"].max,
+          min: false
+        }
+      });
+    },
+    minResWindow() {
+      if (this.$store.getters["hly/forceResPos"].min) {
+        this.$store.commit("hly/UPDATE", {
+          constant: "forceResPos",
+          value: {
+            max: false,
+            min: false
+          }
+        });
+      } else {
+        this.$store.commit("hly/UPDATE", {
+          constant: "forceResPos",
+          value: {
+            max: false,
+            min: true
+          }
+        });
+      }
+    },
+    minWindow() {
+      if (this.$store.getters["hly/forcePos"]) {
+        this.$store.commit("hly/UPDATE", {
+          constant: "forcePos",
+          value: {
+            max: false,
+            min: false
+          }
+        });
+      } else {
+        this.$store.commit("hly/UPDATE", {
+          constant: "forcePos",
+          value: {
+            max: false,
+            min: true
+          }
+        });
+      }
+    },
+    recoverResWindow() {
+      let f = this.$store.getters["hly/forceResPos"];
+      if (!f.max || !f.min) return;
+      this.$store.commit("hly/UPDATE", {
+        constant: "forceResPos",
+        value: {
+          max: false,
+          min: false
+        }
+      });
+    },
+    recoverWindow() {
+      let f = this.$store.getters["hly/forcePos"];
+      if (!f.max || !f.min) return;
+      this.$store.commit("hly/UPDATE", {
+        constant: "forcePos",
+        value: {
+          max: false,
+          min: false
+        }
+      });
     }
   },
   render() {
@@ -168,11 +258,14 @@ export default {
         leave-active-class="animated fadeOutWithouDelay"
       >
         <drag-resize
-          style={this.currentActive == "echarts2" ? "z-index:999;" : ""}
+          style={`
+            ${this.currentActive == "echarts2" ? "z-index:999;" : ""}
+          `}
           ww={800}
           hh={800}
           x={50}
           y={50}
+          identify="echarts2"
           resizable={true}
           initOptions={initOptions}
           vOn:resizemove={e => handleResize(e, this, "echarts2")}
@@ -182,13 +275,16 @@ export default {
             style="background-color:rgb(33,32,45);"
             onMousedown={e => this.switchCurrentActive("echarts2")}
           >
-            <div class="drag">
+            <div class="drag" vOn:click={this.recoverResWindow}>
               <span class="chart-output-content">
                 <span></span>
                 <span></span>
               </span>
-              <span class="chart-output-content"></span>
-              <span class="chart-output-content">
+              <span
+                class="chart-output-content"
+                vOn:click={this.maxOrExtendResWindow}
+              ></span>
+              <span class="chart-output-content" vOn:click={this.minResWindow}>
                 <span></span>
               </span>
             </div>
@@ -211,6 +307,7 @@ export default {
           hh={hh}
           x={x}
           y={y}
+          identify="echarts"
           resizable={true}
           initOptions={initOptions}
           moveable={moveable}
@@ -221,13 +318,16 @@ export default {
             id="print-panel"
             onMousedown={e => this.switchCurrentActive("echarts")}
           >
-            <div class="drag">
+            <div class="drag" vOn:click={this.recoverWindow}>
               <span class="chart-output-content">
                 <span></span>
                 <span></span>
               </span>
-              <span class="chart-output-content"></span>
-              <span class="chart-output-content" vOn:click={this.smallest}>
+              <span
+                class="chart-output-content"
+                vOn:click={this.maxOrExtendWindow}
+              ></span>
+              <span class="chart-output-content" vOn:click={this.minWindow}>
                 <span></span>
               </span>
             </div>
@@ -304,6 +404,7 @@ export default {
       cursor: pointer;
       transition: all 0.2s ease-in-out;
       position: relative;
+      flex-shrink: 0;
 
       &:hover {
         box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
@@ -376,7 +477,7 @@ export default {
     height: 55px;
     border-radius: 5px;
     background-color: #fff;
-    z-index: 9000;
+    z-index: 9999;
 
     display: flex;
     justify-content: center;

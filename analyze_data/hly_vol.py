@@ -147,9 +147,16 @@ class HlyScore(object):
             f.write('''module.exports = [
                 ''')
             try:
-                df = pd.read_csv(self.with_my_result + file, encoding="gbk",  error_bad_lines=False, index_col=0)
+                df = pd.read_csv(self.with_my_result + file, encoding="gbk",  error_bad_lines=False)
             except:
                 print("ERROR OPENING %s"%file)
+
+            cols = df.columns
+            for col in cols:
+                if col[0:2] == "ma":
+                    df.drop([col], axis=1, inplace=True)
+            # print(df)
+            # return
             for index,row in df.iterrows():
                 f.write('''%s,
                 '''% row.to_dict())
@@ -372,16 +379,16 @@ class HlyScore(object):
             self.do_all_job_one(code)
 
 if __name__ == "__main__":
-    # serial_day_arr = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-    # expectation = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-    expectation = [5,10,15,20,30]
-    serial_day_arr = [6,7,8,9,10]
+    serial_day_arr = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    expectation = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    # expectation = [5,10,15,20,30]
+    # serial_day_arr = [6,7,8,9,10]
     hly = HlyScore(serial_day_arr=serial_day_arr,expectation=expectation)
     # hly.calculate_score_all()
     # # hly.calculate_sum_one('000002')
     # hly.calculate_sum_all()
     # hly.analyze_all()
-    # hly.transform_js()
+    hly.transform_js()
     # hly.count()
-    hly.yes_run_me()
+    # hly.yes_run_me()
     # hly.run_by_thread(8)

@@ -4,7 +4,7 @@ import { throttle } from "lodash";
 //   import { events } from '@interactjs/utils';
 export default {
   name: "ct-drag-resize",
-  funtional: true,
+  // funtional: false,
   props: {
     ww: {
       type: Number,
@@ -29,6 +29,10 @@ export default {
     moveable: {
       type: Boolean,
       default: true
+    },
+    identify: {
+      type: String,
+      default: "" 
     }
   },
   mounted() {
@@ -92,10 +96,8 @@ export default {
             move: ({ target, dx, dy }) => {
               if (self.isDragCancel) return;
               //   if (isHittingParentBound(self)) return;
-              var x =
-                (parseFloat(target.getAttribute("data-x")) || 0) + dx;
-              var y =
-                (parseFloat(target.getAttribute("data-y")) || 0) + dy;
+              var x = (parseFloat(target.getAttribute("data-x")) || 0) + dx;
+              var y = (parseFloat(target.getAttribute("data-y")) || 0) + dy;
               self.left += x;
               self.top += y;
             }
@@ -119,6 +121,14 @@ export default {
       target.setAttribute("data-y", y);
     }
   },
+  computed: {
+    hlyres_force_position() {
+      return this.$store.getters["hly/forceResPos"]
+    },
+    hlyscore_force_position() {
+      return this.$store.getters["hly/forcePos"]
+    }
+  },
   data() {
     return {
       top: this.y,
@@ -129,12 +139,51 @@ export default {
     };
   },
   render() {
-    const { hh, ww, top, left, height, width, resizable } = this;
+    const {
+      hh,
+      ww,
+      top,
+      left,
+      height,
+      width,
+      resizable,
+      hlyres_force_position,
+      hlyscore_force_position
+    } = this;
 
-    const fineHeight = height ? `${height}px` : `${hh}px`,
+    let fineHeight = height ? `${height}px` : `${hh}px`,
       fineWidth = width ? `${width}px` : `${ww}px`,
       fineLeft = `${left}px`,
       fineTop = `${top}px`;
+
+    if (this.identify == "echarts2") {
+      if (hlyres_force_position.max) {
+        fineWidth = "100vw";
+        fineHeight = "100vh";
+        fineLeft = "0";
+        fineTop = "0";
+      }
+      if (hlyres_force_position.min) {
+        fineWidth = "90px";
+        fineHeight = "50px";
+        fineLeft = "10px";
+        fineTop = "10px";
+      }
+    }
+    if (this.identify == "echarts") {
+      if (hlyscore_force_position.max) {
+        fineWidth = "100vw";
+        fineHeight = "100vh";
+        fineLeft = "0";
+        fineTop = "0";
+      }
+      if (hlyscore_force_position.min) {
+        fineWidth = "90px";
+        fineHeight = "50px";
+        fineLeft = "10px";
+        fineTop = "70px";
+      }
+    }
 
     return (
       <div
@@ -160,7 +209,7 @@ export default {
   position: relative;
   user-select: none;
   touch-action: none;
-  padding:3px;
+  padding: 3px;
 
   &:hover {
     cursor: move;
@@ -171,7 +220,7 @@ export default {
 
   .cdr-handle {
     position: absolute;
-    border: 1px solid rgba(0,0,0,.4);
+    border: 1px solid rgba(0, 0, 0, 0.4);
     border-radius: 50%;
     height: 20px;
     width: 20px;

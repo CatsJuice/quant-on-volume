@@ -11,7 +11,7 @@ import {
   Select, 
   Tooltip,
   Option,
-  Switch
+  Switch,
 } from 'element-ui';
 Vue.use(Button)
 Vue.use(Select)
@@ -22,7 +22,6 @@ Vue.use(Switch)
 // ant-design
 import { message } from 'ant-design-vue';
 Vue.prototype.$message = message;
-
 
 Vue.config.productionTip = false
 
