@@ -5,6 +5,8 @@ const state = {
     showCount: false,
     currentDataType: 0,
     currentResType: 0,
+    currentHlyResType: 0,
+    currentHlyResWay: 0,
     resMA: undefined,
     resDay: undefined,
     forceResPos: {

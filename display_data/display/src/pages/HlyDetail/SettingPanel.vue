@@ -59,7 +59,50 @@
         </div>
       </div>
 
+      <!-- 选择胡立阳打分策略的两种 -->
       <div class="setting-item" v-if="showResult">
+        <div class="label">
+          <span>选择结果类型</span>
+          <el-tooltip class="item" effect="dark" content="选择胡立阳打分策略的两种" placement="top">
+            <img src="@/assets/images/icon/wh.svg" />
+          </el-tooltip>
+        </div>
+        <el-select
+          @change="handleHlyResTypeChange"
+          v-model="selectedHlyResType"
+          placeholder="请选择类别 "
+        >
+          <el-option
+            v-for="resType in hlyResTypeOption"
+            :key="resType.value"
+            :label="resType.label"
+            :value="resType.value"
+          ></el-option>
+        </el-select>
+      </div>
+      <!-- 胡立阳打分策略 稳定增加时候的两种判定方法 -->
+      <div class="setting-item" v-if="selectedHlyResType == 1">
+        <div class="label">
+          <span>选择判断方法</span>
+          <el-tooltip class="item" effect="dark" content="如何判断稳定增加的方式" placement="top">
+            <img src="@/assets/images/icon/wh.svg" />
+          </el-tooltip>
+        </div>
+        <el-select
+          @change="handleHlyReswayChange"
+          v-model="selectedHlyResway"
+          placeholder="请选择方式 "
+        >
+          <el-option
+            v-for="resway in hlyReswayOption"
+            :key="resway.value"
+            :label="resway.label"
+            :value="resway.value"
+          ></el-option>
+        </el-select> 
+      </div>
+
+      <div class="setting-item" v-if="showResult && selectedHlyResType == 0">
         <div class="label">
           <span>选择结果数据</span>
           <el-tooltip class="item" effect="dark" content="查看上升趋势或下降趋势的统计" placement="top">
@@ -76,7 +119,7 @@
         </el-select>
       </div>
 
-      <div class="setting-item" v-if="showResult">
+      <div class="setting-item" v-if="showResult && selectedHlyResType == 0">
         <div class="label">
           <span>选择结果图表类型</span>
           <el-tooltip class="item" effect="dark" content="切换展示的图表" placement="top">
@@ -94,7 +137,7 @@
       </div>
 
       <!-- MA 天数 -->
-      <div class="setting-item" v-if="showResult && selectedResType == 1">
+      <div class="setting-item" v-if="showResult &&  selectedResType == 1 && selectedHlyResType == 0">
         <div class="label">
           <span>选择热力图 MA</span>
           <el-tooltip class="item" effect="dark" content="选择热力图 MA" placement="top">
@@ -110,24 +153,6 @@
           ></el-option>
         </el-select>
       </div>
-
-      <!-- 加分天数
-      <div class="setting-item" v-if="showResult && selectedResType == 1">
-        <div class="label">
-          <span>选择加分的天数</span>
-          <el-tooltip class="item" effect="dark" content="选择加分的天数" placement="top">
-            <img src="@/assets/images/icon/wh.svg" />
-          </el-tooltip>
-        </div>
-        <el-select @change="handleHMday" v-model="selectedHMday" placeholder="请选择加分天数 ">
-          <el-option
-            v-for="hmday in hmdayOption"
-            :key="hmday.value"
-            :label="hmday.label"
-            :value="hmday.value"
-          ></el-option>
-        </el-select>
-      </div> -->
     </div>
   </div>
 </template>
@@ -162,7 +187,19 @@ export default {
       ],
 
       selectedHMMA: undefined,
-      selectedHMday: undefined
+      selectedHMday: undefined,
+
+      selectedHlyResType: 0,
+      hlyResTypeOption: [
+        { label: "得分最高的结果", value: 0 },
+        { label: "得分稳定增加的结果", value: 1 }
+      ],
+      selectedHlyResway: 0,
+      hlyReswayOption: [
+        { label: "回归拟合", value: 0 },
+        { label: "严格的稳定增加", value: 1 }
+      ]
+
       // daySumOption: [{ label: "", value: "" }]
     };
   },
@@ -186,18 +223,20 @@ export default {
       }
     },
     hmmaOption() {
-      let opt = Object.keys(this.resData[Object.keys(this.resData)[0]]).map(e => {
-        return {
-          label: e,
-          value: e,
+      let opt = Object.keys(this.resData[Object.keys(this.resData)[0]]).map(
+        e => {
+          return {
+            label: e,
+            value: e
+          };
         }
-      })
-      this.selectedHMMA = opt[0].value
+      );
+      this.selectedHMMA = opt[0].value;
       this.$store.commit("hly/UPDATE", {
         constant: "resMA",
         value: opt[0].value
       });
-      return opt
+      return opt;
     },
     hmdayOption() {
       let opt = Object.keys(this.resData).map(e => {
@@ -206,9 +245,10 @@ export default {
           value: e
         };
       });
-      this.selectedHMday = opt[0].value
-      return opt
-    }
+      this.selectedHMday = opt[0].value;
+      return opt;
+    },
+    
   },
   watch: {
     selectedData: {
@@ -265,6 +305,13 @@ export default {
         value
       });
     },
+
+    handleHlyResTypeChange(value) {
+      this.$store.commit("hly/UPDATE", {
+        constant: "currentHlyResType",
+        value
+      });
+    },
     handleResTypeChange(value) {
       this.$store.commit("hly/UPDATE", {
         constant: "currentResType",
@@ -281,6 +328,12 @@ export default {
     handleHMday(value) {
       this.$store.commit("hly/UPDATE", {
         constant: "resDay",
+        value
+      });
+    },
+    handleHlyReswayChange(value) {
+      this.$store.commit("hly/UPDATE", {
+        constant: "currentHlyResWay",
         value
       });
     }

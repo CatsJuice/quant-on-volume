@@ -50,6 +50,12 @@ export default {
     currentDataType() {
       return this.$store.getters["hly/currentDataType"];
     },
+    currentHlyResType() {
+      return this.$store.getters["hly/currentHlyResType"]
+    },
+    currentHlyResWay() {
+      return this.$store.getters["hly/currentHlyResWay"]
+    },
     currentResType() {
       return this.$store.getters["hly/currentResType"];
     },
@@ -76,6 +82,12 @@ export default {
       this.processByCode(this.code);
     },
     currentDataType(val) {
+      this.processResOpt();
+    },
+    currentHlyResType(val) {
+      this.processResOpt();
+    },
+    currentHlyResWay(val) {
       this.processResOpt();
     },
     currentResType(val) {
@@ -107,11 +119,16 @@ export default {
           dataReduce: require("@/data/hly_count_res_reduce.json"),
           currentDataType: this.currentDataType,
           currentResType: this.currentResType,
+          currentHlyResType: this.currentHlyResType,
           resDay: this.resDay,
-          resMA: this.resMA
+          resMA: this.resMA,
+          currentHlyResWay: this.currentHlyResWay
         });
         this.resOpt = cloneDeep(newOpt);
+        console.log(newOpt)
         this.loading = false;
+      }).catch( e => {
+        this.$message.error(e)
       });
     },
     async processByCode(code) {
@@ -174,6 +191,10 @@ export default {
           min: false
         }
       });
+      let vm = this
+      setTimeout(() => {
+        vm.$refs["echartsRes"].resize();
+      },150)
     },
     maxOrExtendWindow() {
       this.$store.commit("hly/UPDATE", {
@@ -183,6 +204,11 @@ export default {
           min: false
         }
       });
+      
+      let vm = this
+      setTimeout(() => {
+        vm.$refs.echarts.resize();
+      },150)
     },
     minResWindow() {
       if (this.$store.getters["hly/forceResPos"].min) {
@@ -268,7 +294,8 @@ export default {
           identify="echarts2"
           resizable={true}
           initOptions={initOptions}
-          vOn:resizemove={e => handleResize(e, this, "echarts2")}
+          autoresize
+          vOn:resizemove={e => handleResize(e, this, "echartsRes")}
         >
           <div
             id="print-panel"
@@ -294,7 +321,7 @@ export default {
               initOptions={initOptions}
               options={this.resOpt}
               autoresize
-              ref="echarts2"
+              ref="echartsRes"
             />
           </div>
         </drag-resize>

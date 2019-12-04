@@ -388,7 +388,7 @@ if __name__ == "__main__":
     # # hly.calculate_sum_one('000002')
     # hly.calculate_sum_all()
     # hly.analyze_all()
-    hly.transform_js()
+    # hly.transform_js()
     # hly.count()
     # hly.yes_run_me()
     # hly.run_by_thread(8)

@@ -2,31 +2,6 @@ import { cloneDeep } from "lodash";
 
 const opt_3d_scatter = {
     tooltip: {},
-    // visualMap: [{
-    //     top: 10,
-    //     calculable: true,
-    //     dimension: 3,
-    //     // max: max.color / 2,
-    //     inRange: {
-    //         color: ['#1710c0', '#0b9df0', '#00fea8', '#00ff0d', '#f5f811', '#f09a09', '#fe0300'],
-    //         symbolSize: [0,100]
-    //     },
-    //     textStyle: {
-    //         color: '#fff'
-    //     }
-    // }, {
-    //     bottom: 10,
-    //     calculable: true,
-    //     dimension: 3,
-    //     // max: max.symbolSize / 2,
-    //     inRange: {
-    //         symbolSize: [10, 40]
-    //     },
-    //     textStyle: {
-    //         color: '#fff'
-    //     }
-    // }],
-
     visualMap: [{
         bottom: 10,
         calculable: true,
@@ -184,54 +159,120 @@ export default function ({
     dataReduce,
     currentDataType,
     currentResType,
+    currentHlyResType,
     resDay,
     resMA,
+    currentHlyResWay
 }) {
-    let sum_data = mergeData(dataPlus, dataReduce)
-    let data
-    if (currentDataType == 0)
-        data = transformData(dataPlus)
-    else if (currentDataType == 1)
-        data = transformData(dataReduce)
-    else if (currentDataType == 2)
-        data = transformData(calcPercent(dataPlus, sum_data))
-    else if (currentDataType == 3)
-        data = transformData(calcPercent(dataReduce, sum_data))
+    if (currentHlyResType == 0){
+
+        let sum_data = mergeData(dataPlus, dataReduce)
+        let data
+        if (currentDataType == 0)
+            data = transformData(dataPlus)
+        else if (currentDataType == 1)
+            data = transformData(dataReduce)
+        else if (currentDataType == 2)
+            data = transformData(calcPercent(dataPlus, sum_data))
+        else if (currentDataType == 3)
+            data = transformData(calcPercent(dataReduce, sum_data))
 
 
-    // VisualMap
-    if (currentDataType == 2 || currentDataType == 3) {
-        opt_3d_scatter.visualMap[0].max = 100
-        opt_htmap.visualMap.max = 100
-    } else {
-        opt_3d_scatter.visualMap[0].max = getMaxInMatrix(matrixParseNumber(transformData(sum_data)))
-        opt_htmap.visualMap.max = getMaxInMatrix(matrixParseNumber(transformData(sum_data)))
-    }
-    
-    if (currentResType == 0) {
-        // 3D 散点图
-        data = matrixParseNumber(data)
-        opt_3d_scatter.series[0].data = cloneDeep(data)
-        return cloneDeep(opt_3d_scatter)
-    } else if (currentResType == 1) {
-        // 热力图
-        opt_htmap.xAxis.data = Array.from(new Set(matrixParseNumber(data).map(row => row[2])))
-        opt_htmap.yAxis.data = Array.from(new Set(matrixParseNumber(data).map(row => row[0])))
+        // VisualMap
+        if (currentDataType == 2 || currentDataType == 3) {
+            opt_3d_scatter.visualMap[0].max = 100
+            opt_htmap.visualMap.max = 100
+        } else {
+            opt_3d_scatter.visualMap[0].max = getMaxInMatrix(matrixParseNumber(transformData(sum_data)))
+            opt_htmap.visualMap.max = getMaxInMatrix(matrixParseNumber(transformData(sum_data)))
+        }
         
-        opt_htmap.xAxis.data = opt_htmap.xAxis.data.sort((a,b) => a-b)
-        opt_htmap.yAxis.data = opt_htmap.yAxis.data.sort((a,b) => a-b)
-        
-        opt_htmap.series[0].data = matrixParseNumber(data).filter(e => {
-            return e[1] == parseInt(resMA.replace("ma_", "")) 
-        }).map(row => {
-            return [
-                opt_htmap.xAxis.data.indexOf(row[2]), 
-                opt_htmap.yAxis.data.indexOf(row[0]),
-                row[3]
-            ]
-        })
+        if (currentResType == 0) {
+            // 3D 散点图
+            data = matrixParseNumber(data)
+            opt_3d_scatter.series[0].data = cloneDeep(data)
+            return cloneDeep(opt_3d_scatter)
+        } else if (currentResType == 1) {
+            // 热力图
+            opt_htmap.xAxis.data = Array.from(new Set(matrixParseNumber(data).map(row => row[2])))
+            opt_htmap.yAxis.data = Array.from(new Set(matrixParseNumber(data).map(row => row[0])))
+            
+            opt_htmap.xAxis.data = opt_htmap.xAxis.data.sort((a,b) => a-b)
+            opt_htmap.yAxis.data = opt_htmap.yAxis.data.sort((a,b) => a-b)
+            
+            opt_htmap.series[0].data = matrixParseNumber(data).filter(e => {
+                return e[1] == parseInt(resMA.replace("ma_", "")) 
+            }).map(row => {
+                return [
+                    opt_htmap.xAxis.data.indexOf(row[2]), 
+                    opt_htmap.yAxis.data.indexOf(row[0]),
+                    row[3]
+                ]
+            })
+            return cloneDeep(opt_htmap)
+        }
+    } else if (currentHlyResType == 1) {
+        let data_up = undefined
+        let data_down = undefined
+        if (currentHlyResWay == 0) {
+            data_up = require("@/data/hly_count_res_ma5_type_2_up.json")
+            data_down = require("@/data/hly_count_res_ma5_type_2_down.json")
+        } else if(currentHlyResWay == 1){
+            data_up = require("@/data/hly_count_res_ma5_type_1_up.json")
+            data_down = require("@/data/hly_count_res_ma5_type_1_down.json")
+        }
 
-        return cloneDeep(opt_htmap)
+        let xAxis = Array.from(new Set(Object.keys(data_up).map(e => parseInt(e.slice(1))).concat(Object.keys(data_down).map(e => parseInt(e.slice(1))))));
+        return {
+            xAxis: {
+                data: xAxis,
+                type: 'category',
+                axisLine: {
+                    lineStyle: {
+                        color: "#fff"
+                    }
+                },
+                axisTick: {
+
+                },
+                axisLabel: {
+                    color: "#fff"
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: {
+                    lineStyle: {
+                        color: "#fff"
+                    }
+                },
+                axisTick: {
+
+                },
+                axisLabel: {
+                    color: "#fff"
+                }
+            },
+            legend: {
+                show: true,
+                textStyle: {
+                    color: "#FFF"
+                }
+            },
+            series: [data_up, data_down].map((data, index) => {
+                return {
+                    name: index == 1? "上升":"下降",
+                    type: "bar",
+                    data: xAxis.map(key => {
+                        return data[`_${key}`]
+                    }),
+                    label:{
+                        show: true,
+                        position: "top"
+                    }
+                }
+            })
+        };
     }
 
 }
