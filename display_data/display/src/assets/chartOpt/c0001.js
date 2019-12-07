@@ -134,8 +134,10 @@ const opt = {
 
 export default function ({
     data,
+    zljcData,
     daySum,
     ma,
+    selectedZhiBiao
 }) {
     const sortedData = cloneDeep(data)
     sortedData.sort(compareDate)
@@ -166,71 +168,96 @@ export default function ({
         }
     })
 
-    // 胡立阳打分数据
-    opt.legend.data = Object.keys(sortedData[0]).map(key => {
-        if (key === `sum_${daySum}`)
-            return key
-    }).filter(key => key != undefined)
-    opt.series = opt.series.concat(opt.legend.data.map(key => {
-        return {
-            name: key,
-            type: "line",
-            data: sortedData.map(row => row[key]),
-            smooth: true,
-            xAxisIndex: 1,
-            yAxisIndex: 1,
-        }
-    }))
-    let sum_max = opt.series[1].data.reduce((prev, curr) => {
-        if (curr > prev) return curr
-        return prev
-    }, -Infinity)
-    let sum_min = opt.series[1].data.reduce((prev, curr) => {
-        if (curr < prev) return curr
-        return prev
-    }, Infinity)
-    let sum_abs_max = Math.max(Math.abs(sum_max), Math.abs(sum_min))
-    opt.yAxis[1].max = Math.abs(sum_abs_max)
-    opt.yAxis[1].min = -1 * Math.abs(sum_abs_max)
-
-    // 增长 / 减少的价格
-    opt.series = opt.series.concat({
-        name: "priceChange",
-        type: "bar",
-        data: sortedData.map((row, index) => {
-            if (!index) return 0
-            return parseInt((row['收盘价'] - sortedData[index - 1]['收盘价']) * 100) / 100
-        }),
-        xAxisIndex: 2,
-        yAxisIndex: 2,
-        label: {
-            show: false
-        }
-    })
-    let delta_max = opt.series[2].data.reduce((prev, curr) => {
-        if (curr > prev) return curr
-        return prev
-    }, -Infinity);
-    let delta_min = opt.series[2].data.reduce((prev, curr) => {
-        if (curr < prev) return curr
-        return prev
-    }, Infinity)
-    let delta_abs_max = Math.max(Math.abs(delta_max), Math.abs(delta_min))
-    opt.yAxis[2].max = Math.abs(delta_abs_max)
-    opt.yAxis[2].min = -1 * Math.abs(delta_abs_max)
-
-    opt.series = opt.series.concat(ma.map(val => {
-        return {
-            name: `MA${val}`,
-            type: 'line',
-            data: calculateMA(val, sortedData),
-            smooth: true,
-            lineStyle: {
-                normal: {opacity: 0.5}
+    if (selectedZhiBiao == 0) {
+        // 胡立阳打分数据
+        opt.legend.data = Object.keys(sortedData[0]).map(key => {
+            if (key === `sum_${daySum}`)
+                return key
+        }).filter(key => key != undefined)
+        opt.series = opt.series.concat(opt.legend.data.map(key => {
+            return {
+                name: key,
+                type: "line",
+                data: sortedData.map(row => row[key]),
+                smooth: true,
+                xAxisIndex: 1,
+                yAxisIndex: 1,
             }
-        }
-    }))
+        }))
+        let sum_max = opt.series[1].data.reduce((prev, curr) => {
+            if (curr > prev) return curr
+            return prev
+        }, -Infinity)
+        let sum_min = opt.series[1].data.reduce((prev, curr) => {
+            if (curr < prev) return curr
+            return prev
+        }, Infinity)
+        let sum_abs_max = Math.max(Math.abs(sum_max), Math.abs(sum_min))
+        opt.yAxis[1].max = Math.abs(sum_abs_max)
+        opt.yAxis[1].min = -1 * Math.abs(sum_abs_max)
 
+        // 增长 / 减少的价格
+        opt.series = opt.series.concat({
+            name: "priceChange",
+            type: "bar",
+            data: sortedData.map((row, index) => {
+                if (!index) return 0
+                return parseInt((row['收盘价'] - sortedData[index - 1]['收盘价']) * 100) / 100
+            }),
+            xAxisIndex: 2,
+            yAxisIndex: 2,
+            label: {
+                show: false
+            }
+        })
+        let delta_max = opt.series[2].data.reduce((prev, curr) => {
+            if (curr > prev) return curr
+            return prev
+        }, -Infinity);
+        let delta_min = opt.series[2].data.reduce((prev, curr) => {
+            if (curr < prev) return curr
+            return prev
+        }, Infinity)
+        let delta_abs_max = Math.max(Math.abs(delta_max), Math.abs(delta_min))
+        opt.yAxis[2].max = Math.abs(delta_abs_max)
+        opt.yAxis[2].min = -1 * Math.abs(delta_abs_max)
+
+        opt.series = opt.series.concat(ma.map(val => {
+            return {
+                name: `MA${val}`,
+                type: 'line',
+                data: calculateMA(val, sortedData),
+                smooth: true,
+                lineStyle: {
+                    normal: { opacity: 0.5 },
+                }
+            }
+        }))
+    } else if(selectedZhiBiao == 1) {
+        let legend = Object.keys(zljcData[0]).slice(1)
+        legend.pop()
+        opt.legend.data = legend
+        opt.series = opt.series.concat(opt.legend.data.map(key => {
+            return {
+                name: key,
+                type: "line",
+                data: sortedData.map(row => {
+                    return zljcData.filter(e => {
+                        return e.date === row['日期']
+                    })[0][key]
+                }),
+                smooth: true,
+                xAxisIndex: 1,
+                yAxisIndex: 1,
+                symbolSize: 0,
+                lineStyle: {
+                    color: key == 'jcs' ? '#fff': (key == 'jcm' ? '#F4D03F': '#A569BD') 
+                }
+            }
+        }))
+        opt.yAxis[1].min = null
+        opt.yAxis[1].max = null
+    }
     return opt
 }
 

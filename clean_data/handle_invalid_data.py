@@ -10,7 +10,7 @@ import random
 
 class DataClean(object):
 
-    def __init__(self, end_date="20140101"):
+    def __init__(self, end_date="20120101"):
         const_path = sys.path[0].replace("\\clean_data", "")
         f = open(const_path + "\\const.json", "r", encoding="utf8")
         self.consts = json.loads(f.read())
@@ -96,7 +96,7 @@ class DataClean(object):
 
     def is_handled(self, code):
         try:
-            df = pd.read_csv('%s%s.csv'%(self.consts['day_line_file_prefix']['netease_clean'], code), encoding="gbk")
+            df = pd.read_csv('%snew\\%s.csv'%(self.consts['day_line_file_prefix']['netease_clean'], code), encoding="gbk")
             return True
         except:
             return False

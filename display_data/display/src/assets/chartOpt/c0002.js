@@ -61,7 +61,6 @@ const opt_3d_scatter = {
     }]
 }
 
-
 const opt_htmap = {
     tooltip: {
         position: 'top'
@@ -152,8 +151,6 @@ const opt_htmap = {
     }]
 };
 
-
-
 export default function ({
     dataPlus,
     dataReduce,
@@ -215,11 +212,11 @@ export default function ({
         let data_up = undefined
         let data_down = undefined
         if (currentHlyResWay == 0) {
-            data_up = require("@/data/hly_count_res_ma5_type_2_up.json")
-            data_down = require("@/data/hly_count_res_ma5_type_2_down.json")
-        } else if(currentHlyResWay == 1){
             data_up = require("@/data/hly_count_res_ma5_type_1_up.json")
             data_down = require("@/data/hly_count_res_ma5_type_1_down.json")
+        } else if(currentHlyResWay == 1){
+            data_up = require("@/data/hly_count_res_ma5_type_2_up.json")
+            data_down = require("@/data/hly_count_res_ma5_type_2_down.json")
         }
 
         let xAxis = Array.from(new Set(Object.keys(data_up).map(e => parseInt(e.slice(1))).concat(Object.keys(data_down).map(e => parseInt(e.slice(1))))));

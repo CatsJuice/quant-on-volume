@@ -63,5 +63,5 @@ class Verify(object):
 if __name__ == "__main__":
     v = Verify()
     # v.verify_one('000001')
-    # v.verify_all(dscore=4)
-    v.find_EST()
+    v.verify_all(dscore=4)
+    # v.find_EST()

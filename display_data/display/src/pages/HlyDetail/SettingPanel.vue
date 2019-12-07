@@ -10,8 +10,29 @@
     <div class="title">Setting Panel</div>
 
     <div class="setting-items">
-      <!-- 设置项 -->
       <div class="setting-item">
+        <div class="label">
+          <span>要显示的辅助指标</span>
+          <el-tooltip class="item" effect="dark" content="选择要在K线下方显示的辅助指标" placement="top">
+            <img src="@/assets/images/icon/wh.svg" />
+          </el-tooltip>
+        </div>
+
+        <el-select 
+          @change="changeZhiBiaoDisplay"
+          v-model="selectedZhiBiao" 
+          placeholder="请选择">
+          <el-option
+            v-for="item in zhiBiaoOption"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
+      </div>
+
+      <!-- 设置项 -->
+      <div class="setting-item" v-show="selectedZhiBiao == 0">
         <div class="label">
           <span>连续打分的天数</span>
           <el-tooltip class="item" effect="dark" content="选择连续统计几天的打分和" placement="top">
@@ -28,7 +49,7 @@
         </el-select>
       </div>
 
-      <!-- 设置项 -->
+      <!-- 设置项 MA-->
       <div class="setting-item">
         <div class="label">
           <span>要显示的 MA</span>
@@ -88,18 +109,14 @@
             <img src="@/assets/images/icon/wh.svg" />
           </el-tooltip>
         </div>
-        <el-select
-          @change="handleHlyReswayChange"
-          v-model="selectedHlyResway"
-          placeholder="请选择方式 "
-        >
+        <el-select @change="handleHlyReswayChange" v-model="selectedHlyResway" placeholder="请选择方式 ">
           <el-option
             v-for="resway in hlyReswayOption"
             :key="resway.value"
             :label="resway.label"
             :value="resway.value"
           ></el-option>
-        </el-select> 
+        </el-select>
       </div>
 
       <div class="setting-item" v-if="showResult && selectedHlyResType == 0">
@@ -137,7 +154,10 @@
       </div>
 
       <!-- MA 天数 -->
-      <div class="setting-item" v-if="showResult &&  selectedResType == 1 && selectedHlyResType == 0">
+      <div
+        class="setting-item"
+        v-if="showResult &&  selectedResType == 1 && selectedHlyResType == 0"
+      >
         <div class="label">
           <span>选择热力图 MA</span>
           <el-tooltip class="item" effect="dark" content="选择热力图 MA" placement="top">
@@ -163,6 +183,11 @@ export default {
     return {
       showPanel: true,
       selectedDaySum: undefined,
+      selectedZhiBiao: 0,
+      zhiBiaoOption: [
+        { label: "胡立阳打分结果", value: 0 },
+        { label: "ZLJC", value: 1 }
+      ],
       selectedMA: [],
       maOption: [
         { label: 5, value: 5 },
@@ -247,8 +272,7 @@ export default {
       });
       this.selectedHMday = opt[0].value;
       return opt;
-    },
-    
+    }
   },
   watch: {
     selectedData: {
@@ -336,6 +360,13 @@ export default {
         constant: "currentHlyResWay",
         value
       });
+    },
+
+    changeZhiBiaoDisplay(value) {
+      this.$store.commit("hly/UPDATE", {
+        constant: "selectedZhiBiao",
+        value
+      })
     }
   }
 };

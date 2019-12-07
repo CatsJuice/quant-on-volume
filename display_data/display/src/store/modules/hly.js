@@ -16,7 +16,8 @@ const state = {
     forcePos: {
         max: false,
         min: false
-    }
+    },
+    selectedZhiBiao: 0,
 }
 
 const getters = {}

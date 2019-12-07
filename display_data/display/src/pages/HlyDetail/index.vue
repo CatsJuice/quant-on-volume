@@ -51,10 +51,10 @@ export default {
       return this.$store.getters["hly/currentDataType"];
     },
     currentHlyResType() {
-      return this.$store.getters["hly/currentHlyResType"]
+      return this.$store.getters["hly/currentHlyResType"];
     },
     currentHlyResWay() {
-      return this.$store.getters["hly/currentHlyResWay"]
+      return this.$store.getters["hly/currentHlyResWay"];
     },
     currentResType() {
       return this.$store.getters["hly/currentResType"];
@@ -69,6 +69,9 @@ export default {
     },
     resDay() {
       return this.$store.getters["hly/resDay"];
+    },
+    selectedZhiBiao() {
+      return this.$store.getters["hly/selectedZhiBiao"];
     }
   },
   mounted() {
@@ -79,6 +82,9 @@ export default {
       this.processByCode(this.code);
     },
     ma(val) {
+      this.processByCode(this.code);
+    },
+    selectedZhiBiao(val) {
       this.processByCode(this.code);
     },
     currentDataType(val) {
@@ -112,24 +118,25 @@ export default {
     processResOpt() {
       this.loading = true;
       const promisedOptProcesser = () => import("@/assets/chartOpt/c0002.js");
-      promisedOptProcesser().then(res => {
-        const optProcessor = res.default;
-        const newOpt = optProcessor({
-          dataPlus: require("@/data/hly_count_res_plus.json"),
-          dataReduce: require("@/data/hly_count_res_reduce.json"),
-          currentDataType: this.currentDataType,
-          currentResType: this.currentResType,
-          currentHlyResType: this.currentHlyResType,
-          resDay: this.resDay,
-          resMA: this.resMA,
-          currentHlyResWay: this.currentHlyResWay
+      promisedOptProcesser()
+        .then(res => {
+          const optProcessor = res.default;
+          const newOpt = optProcessor({
+            dataPlus: require("@/data/hly_count_res_plus.json"),
+            dataReduce: require("@/data/hly_count_res_reduce.json"),
+            currentDataType: this.currentDataType,
+            currentResType: this.currentResType,
+            currentHlyResType: this.currentHlyResType,
+            resDay: this.resDay,
+            resMA: this.resMA,
+            currentHlyResWay: this.currentHlyResWay
+          });
+          this.resOpt = cloneDeep(newOpt);
+          this.loading = false;
+        })
+        .catch(e => {
+          this.$message.error(e);
         });
-        this.resOpt = cloneDeep(newOpt);
-        console.log(newOpt)
-        this.loading = false;
-      }).catch( e => {
-        this.$message.error(e)
-      });
     },
     async processByCode(code) {
       this.loading = true;
@@ -150,13 +157,34 @@ export default {
         data = res.data.data;
         this.storedData = data;
       }
+
+      let zljcData = [];
+      if (
+        this.storedZLJC !== undefined &&
+        this.storedZLJC.length > 0 &&
+        this.storedZLJC[0].code == code
+      ) {
+        zljcData = this.storedZLJC;
+      } else {
+        let res = await this.$axios.get("http://stock.catsjuice.top/api/zljc", {
+          params: {
+            code
+          }
+        });
+        zljcData = res.data.data
+        this.storedZLJC = zljcData
+        this.storedZLJC[0].code = code
+      }
+
       const promisedOptProcesser = () => import("@/assets/chartOpt/c0001.js");
       promisedOptProcesser().then(res => {
         const optProcessor = res.default;
         const newOpt = optProcessor({
           data,
+          zljcData,
           daySum: this.daySum,
-          ma: this.ma
+          ma: this.ma,
+          selectedZhiBiao: this.selectedZhiBiao
         });
 
         this.opt = cloneDeep(newOpt);
@@ -191,10 +219,10 @@ export default {
           min: false
         }
       });
-      let vm = this
+      let vm = this;
       setTimeout(() => {
         vm.$refs["echartsRes"].resize();
-      },150)
+      }, 150);
     },
     maxOrExtendWindow() {
       this.$store.commit("hly/UPDATE", {
@@ -204,11 +232,11 @@ export default {
           min: false
         }
       });
-      
-      let vm = this
+
+      let vm = this;
       setTimeout(() => {
         vm.$refs.echarts.resize();
-      },150)
+      }, 150);
     },
     minResWindow() {
       if (this.$store.getters["hly/forceResPos"].min) {

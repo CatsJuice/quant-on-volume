@@ -7,16 +7,77 @@
     <div class="card">
       <header>
         <section>
-          <span>根据日期筛选得分最高的：</span>
+          <!-- 选择筛选方式 -->
+          <el-select style="margin-right:10px;" v-model="query" filterable placeholder="选择筛选的方式">
+            <el-option
+              v-for="item in queryOpt"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+
+          <!-- 筛选综合选项 -->
+          <el-select
+            style="margin-right:10px;"
+            v-model="currentHlyZLJCDate"
+            filterable
+            placeholder="根据日期筛选"
+            v-if="query == 2"
+          >
+            <el-option label="全部日期" :value="0"></el-option>
+            <el-option
+              v-for="item in hly_ZLJC_dates_opt"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+
+          <!-- 筛选得分最高的 -->
           <el-select
             style="margin-right:10px;"
             v-model="currentDate"
             filterable
             placeholder="根据日期筛选"
+            v-if="query == 0"
           >
             <el-option label="全部日期" :value="0"></el-option>
             <el-option
               v-for="item in datesOpt"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+
+          <!-- 筛选得分稳定增加的 -->
+          <el-select
+            style="margin-right:10px;"
+            v-model="raiseDate"
+            filterable
+            placeholder="根据日期筛选"
+            v-if="query == 1"
+          >
+            <el-option label="全部日期" :value="0"></el-option>
+            <el-option
+              v-for="item in raiseDatesOpt"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+
+          <!-- 筛选得分稳定增加的 (筛选天数)-->
+          <el-select
+            style="margin-right:10px;"
+            v-model="day"
+            filterable
+            placeholder="筛选连续打分天数"
+            v-if="query == 1 && raiseDate != 0"
+          >
+            <el-option
+              v-for="item in days"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -58,27 +119,68 @@
 
 <script>
 import codes from "@/data/code_list.js";
-import { cloneDeep } from 'lodash'
+import { cloneDeep } from "lodash";
 export default {
   name: "codelist",
   data() {
     return {
       value: undefined,
       currentDate: 0,
-      loading: false
+      raiseDate: 0,
+      loading: false,
+      queryOpt: [
+        { label: "根据日期筛选得分最高的", value: 0 },
+        { label: "根据日期筛选得分稳定增加的", value: 1 },
+        { label: "根据 hly 打分和 ZLJC ", value: 2 }
+      ],
+      query: 0,
+      day: undefined,
+      currentHlyZLJCDate: 0
     };
   },
   computed: {
     options() {
       let opt;
-      if (this.currentDate == 0) {
-        opt = codes.map(code => {
-          return { label: code, value: code };
-        });
-      } else {
-        opt = this.queryByDate[this.currentDate].map(code => {
-          return { label: code, value: code };
-        });
+      if (this.query == 0) {
+        if (this.currentDate == 0) {
+          opt = codes.map(code => {
+            return { label: code, value: code };
+          });
+        } else {
+          opt = this.queryByDate[this.currentDate].map(code => {
+            return { label: code, value: code };
+          });
+        }
+      } else if (this.query == 1) {
+        if (this.raiseDate == 0) {
+          opt = codes.map(code => {
+            return { label: code, value: code };
+          });
+        } else {
+          if (this.day) {
+            if (!this.queryByDateRaise[this.raiseDate][this.day]) {
+              this.day = undefined;
+              opt = codes.map(code => {
+                return { label: code, value: code };
+              });
+            }
+            opt = this.queryByDateRaise[this.raiseDate][this.day].map(code => {
+              return { label: code, value: code };
+            });
+          } else {
+            return [];
+          }
+        }
+      } else if (this.query == 2) {
+        if (this.currentHlyZLJCDate == 0) {
+          opt = codes.map(code => {
+            return { label: code, value: code };
+          });
+        } else {
+          return this.hlyZLJCRes[this.currentHlyZLJCDate].map(code => {
+            return { label: code, value: code };
+          });
+        }
       }
       // this.loading = false;
 
@@ -88,17 +190,63 @@ export default {
       return require("@/data/hly_count_res_max_2_group_by_date.json");
     },
 
+    queryByDateRaise() {
+      return require("@/data/up_res_group_by_date_strict_mode.json");
+    },
+    hlyZLJCRes() {
+      return require("@/data/hly_and_zljc_res.json");
+    },
+
     datesOpt() {
-      return Object.keys(this.queryByDate).sort((a, b) => {
-        return parseInt(a.split("-").join("")) - parseInt(b.split("-").join(""));
-      }).map(date => {
-        return { label: date, value: date };
+      return Object.keys(this.queryByDate)
+        .sort((a, b) => {
+          return (
+            parseInt(b.split("-").join("")) - parseInt(a.split("-").join(""))
+          );
+        })
+        .map(date => {
+          return { label: date, value: date };
+        });
+    },
+
+    raiseDatesOpt() {
+      return Object.keys(this.queryByDateRaise)
+        .sort((a, b) => {
+          return (
+            parseInt(b.split("-").join("")) - parseInt(a.split("-").join(""))
+          );
+        })
+        .map(date => {
+          return { label: date, value: date };
+        });
+    },
+
+    days() {
+      return Object.keys(this.queryByDateRaise[this.raiseDate]).map(day => {
+        return { label: `sum_${day.slice(1)}`, value: day };
       });
+    },
+    hly_ZLJC_dates_opt() {
+      return Object.keys(this.hlyZLJCRes)
+        .sort((a, b) => {
+          return (
+            parseInt(b.split("-").join("")) - parseInt(a.split("-").join(""))
+          );
+        })
+        .map(date => {
+          return { label: date, value: date };
+        });
     }
   },
   methods: {
     jpToDetail() {
       this.$router.push({ path: `/hly/${this.value}` });
+    },
+    confirmQuery() {
+      console.log(this.raiseDate, this.day);
+      // this.option = this.queryByDateRaise[this.raiseDate][this.day].map(code => {
+      //   return { label: code, value: code}
+      // })
     }
   }
 };

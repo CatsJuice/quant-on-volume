@@ -21,6 +21,8 @@ class Raise(object):
         self.res_up = {}
         self.res_down = {}
 
+        self.up_res_group_by_date = {}
+
     def one(self, code):
         try:
             df = pd.read_csv("%s%s.csv" % (self.with_my_result, code), encoding="gbk")
@@ -35,8 +37,8 @@ class Raise(object):
                     if len(sum_arr[day]) < day:
                         continue
                     if index-5 >= 0:
-                        if (self.isRaise(sum_arr[day], type=2)):    # 满足形态
-                            self.updateRes(row['ma_5'] > df.loc[index-5, 'ma_5'], day)
+                        if (self.isRaise(sum_arr[day], type=1)):    # 满足形态
+                            self.updateRes(row['ma_5'] > df.loc[index-5, 'ma_5'], day, row, code)
                         sum_arr[day].popleft()
                         # for ma in self.ma_arr:
                         #     self.updateRes(row['ma_%s' % ma] > df.loc[index-ma, 'ma_%s' % ma], day, ma)
@@ -52,14 +54,17 @@ class Raise(object):
             self.one(code)
             # print(self.res_up)
             # print(self.res_down)
-        f = open("%s\\hly_count_res_ma5_type_1_up.json" % sys.path[0], "w", encoding="utf-8")
-        f.write(json.dumps(self.res_up, ensure_ascii=False))
+        f = open("%s\\up_res_group_by_date_strict_mode.json" % sys.path[0], "w", encoding="utf-8")
+        f.write(json.dumps(self.up_res_group_by_date, ensure_ascii=False))
         f.close()
 
-        f = open("%s\\hly_count_res_ma5_type_1_down.json" % sys.path[0], "w", encoding="utf-8")
-        f.write(json.dumps(self.res_down, ensure_ascii=False))
-        f.close()
+        # f = open("%s\\hly_count_res_ma5_type_1_up.json" % sys.path[0], "w", encoding="utf-8")
+        # f.write(json.dumps(self.res_up, ensure_ascii=False))
+        # f.close()
 
+        # f = open("%s\\hly_count_res_ma5_type_1_down.json" % sys.path[0], "w", encoding="utf-8")
+        # f.write(json.dumps(self.res_down, ensure_ascii=False))
+        # f.close()
 
     def isRaise(self, arr, type):
         c = copy.deepcopy(arr)
@@ -75,17 +80,25 @@ class Raise(object):
             line = np.polyfit(x, y, deg=1)
             return line[0] > 0
     
-    def updateRes(self, flag, day):
+    def updateRes(self, flag, day, row, code):
         key = "_%s"%day
-        if flag:
+        if flag:        # 上升
             if not key in self.res_up.keys():
                 self.res_up[key] = 0
             self.res_up[key] += 1
+
+            if not row['日期'] in self.up_res_group_by_date.keys():
+                self.up_res_group_by_date[row['日期']] = {}
+            if not key in self.up_res_group_by_date[row['日期']].keys():
+                self.up_res_group_by_date[row['日期']][key] = []
+            self.up_res_group_by_date[row['日期']][key].append(code)
         else:
             if not key in self.res_down.keys():
                 self.res_down[key] = 0
             self.res_down[key] += 1
 
+
 if __name__ == "__main__":
     r = Raise()
     r.all()
+    # r.count()
