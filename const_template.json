@@ -1,7 +1,7 @@
 {
     "tushare": {
-        "token": "",
-        "username": ""
+        "token": "ur tushare token",
+        "username": "ur tushare username"
     },
     "type": "https",
     "check_url1": "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page=2&num=40&sort=amount&asc=0&node=hs_a&symbol=&_s_r_a=auto",
@@ -17,12 +17,24 @@
         "requests",
         "BeautifulSoup4"
     ],
-    "day_line_file_prefix": "E:\\files\\stock\\dayline\\netease\\",
+    "day_line_file_prefix": {
+        "netease": "E:\\files\\stock\\dayline\\netease\\",
+        "netease_clean": "E:\\files\\stock\\dayline\\clean\\",
+        "ease_money": "E:\\files\\stock\\dayline\\eastMoney\\",
+        "tushare": "E:\\files\\stock\\dayline\\tushare\\",
+        "with_my_result": "E:\\files\\stock\\dayline\\with_my_result\\"
+    },
     "stock_list_file": "E:\\files\\stock\\code_list.csv",
     "macd_img_path": "E:\\files\\stock\\dayline\\macd_img\\",
     "path": {
         "stock_list": { 
-            "sina": "E:\\files\\stock\\stock_list\\sina_list"
+            "sina": "E:\\files\\stock\\stock_list\\sina_list",
+            "netease": "E:\\files\\stock\\stock_list\\netease_list",
+            "tushare": "E:\\files\\stock\\stock_list\\tushare"
+        },
+        "result": {
+            "hly": "E:\\files\\stock\\dayline\\hly_new_2\\",
+            "zljc": "E:\\files\\stock\\dayline\\zljc\\"
         }
     }
 }
